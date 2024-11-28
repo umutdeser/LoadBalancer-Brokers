@@ -1,0 +1,42 @@
+version: "3.10"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+    hostname: mosquitto
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto:/etc/mosquitto
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      
+  mosquitto2:
+    image: eclipse-mosquitto
+    hostname: mosquitto2
+    container_name: mosquitto2
+    network_mode: "brokerdemo_default" # broker ağını kullanır
+    restart: unless-stopped
+    ports:
+      - "1884:1883"
+      - "9002:9001"
+    volumes:
+      - ./mosquitto:/etc/mosquitto
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      
+  haproxy:
+      image: haproxy:latest
+      container_name: mqtt-lb
+      restart: unless-stopped
+      network_mode: "brokerdemo_default"
+      volumes:
+        - ./haproxy-config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "10m"
+          max-file: "3"
+      ports:
+        - "1997:1997"  # 1997 portunu dışa açıyoruz
